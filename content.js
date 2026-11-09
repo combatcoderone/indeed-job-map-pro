@@ -1289,7 +1289,7 @@
     setInterval(function () { injectShowOnMapButton(); }, 2000);
   }
 
-  async function showMap(keepView) {
+  async async function showMap(keepView) {
     if (typeof L === "undefined") {
       setStatus("Map library did not load. Check your internet connection, then reload Indeed and try Open map again.");
       return { ok: false, reason: "leaflet missing" };
