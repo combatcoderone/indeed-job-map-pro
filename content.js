@@ -1099,6 +1099,158 @@
     if (mapCenterMarker) mapCenterMarker.setLatLng([center.lat, center.lng]);
   }
 
+function getIndeedJobDetailPane() {
+    const selectors = [
+      "[data-testid='jobsearch-JobInfoHeader-title']",
+      "[data-testid='job-detail']",
+      "#jobsearch-ViewjobPane",
+      ".jobsearch-JobComponent",
+      "[id*='jobDetail']"
+    ];
+    const candidates = [];
+    selectors.forEach(function (selector) {
+      document.querySelectorAll(selector).forEach(function (el) {
+        const pane = el.matches("h1, h2") ? (el.closest("[data-testid='job-detail'], #jobsearch-ViewjobPane, .jobsearch-JobComponent") || el.parentElement) : el;
+        if (pane && pane !== document.body && candidates.indexOf(pane) === -1) candidates.push(pane);
+      });
+    });
+    // The injected control is placed beside Indeed's Apply button. Its
+    // ancestors provide a fallback when Indeed changes its detail-pane IDs.
+    const control = document.getElementById("irf-show-on-map");
+    let ancestor = control ? control.parentElement : null;
+    for (let depth = 0; ancestor && ancestor !== document.body && depth < 9; depth++, ancestor = ancestor.parentElement) {
+      if (ancestor.querySelector("h1, h2, [data-testid='jobsearch-JobInfoHeader-title'], [data-testid='job-title']") &&
+          (ancestor.innerText || "").length > 35 && candidates.indexOf(ancestor) === -1) {
+        candidates.push(ancestor);
+      }
+    }
+    const visible = candidates.filter(function (el) {
+      const rect = el.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    });
+    visible.sort(function (a, b) {
+      // Prefer the smallest visible container containing the selected job
+      // heading; this avoids reading the entire search-results page.
+      return (a.innerText || "").length - (b.innerText || "").length;
+    });
+    return visible[0] || candidates[0] || null;
+  }
+
+  function readIndeedSelectedJobDetails() {
+    const pane = getIndeedJobDetailPane();
+    if (!pane) return null;
+    function firstText(selectors) {
+      for (let i = 0; i < selectors.length; i++) {
+        const el = pane.querySelector(selectors[i]);
+        const value = el ? textOf(el).replace(/\\s+/g, " ").trim() : "";
+        if (value && value.length < 180) return value;
+      }
+      return "";
+    }
+    const title = firstText([
+      "[data-testid='jobsearch-JobInfoHeader-title']",
+      "[data-testid='job-title']",
+      "h1", "h2"
+    ]);
+    if (!title) return null;
+    const company = firstText([
+      "[data-testid='inlineHeader-companyName']",
+      "[data-testid='company-name']",
+      "[data-testid='jobsearch-JobInfoHeader-companyName']",
+      ".jobsearch-InlineCompanyRating a",
+      ".jobsearch-InlineCompanyRating div",
+      "a[data-tn-element='companyName']"
+    ]);
+    let location = firstText([
+      "[data-testid='jobsearch-JobInfoHeader-subtitle'] [data-testid='text-location']",
+      "[data-testid='text-location']",
+      "[data-testid='job-location']",
+      ".companyLocation"
+    ]);
+    let jk = pane.getAttribute("data-jk") || pane.getAttribute("data-jobkey") || null;
+    let url = null;
+    const links = pane.querySelectorAll("a[href]");
+    for (let i = 0; i < links.length; i++) {
+      const href = links[i].getAttribute("href") || "";
+      const key = href.match(/[?&]jk=([A-Za-z0-9]+)/);
+      const dataKey = links[i].getAttribute("data-jk");
+      if (!jk && (key || dataKey)) jk = dataKey || key[1];
+      if (!url && (key || /\\/viewjob(?:[/?]|$)/.test(href))) {
+        url = href.indexOf("http") === 0 ? href : new URL(href, window.location.origin).href;
+      }
+    }
+    const lines = (pane.innerText || "").split("\\n").map(function (line) { return line.trim(); }).filter(Boolean).slice(0, 14);
+    const titleIndex = lines.findIndex(function (line) { return norm(line) === norm(title); });
+    if (titleIndex >= 0) {
+      const afterTitle = lines.slice(titleIndex + 1).filter(function (line) {
+        return !/^(apply|save|share|report|show on map|new page|same page)$/i.test(line);
+      });
+      if (!company && afterTitle.length) company = afterTitle[0].slice(0, 120);
+      if (!location) {
+        location = afterTitle.find(function (line) {
+          return /,\\s*(QC|ON|BC|AB|MB|SK|NS|NB|NL|PE|YT|NT|NU)\\b/i.test(line) ||
+            /^(remote|hybrid|work from home)\\b/i.test(line);
+        }) || "";
+      }
+    }
+    return { pane: pane, title: title, company: company, location: location, jk: jk, url: url };
+  }
+
+  function selectedJobMatches(job, details) {
+    if (!job || !details) return false;
+    if (details.jk && job.jk) return details.jk === job.jk;
+    const a = norm(job.title || "");
+    const b = norm(details.title || "");
+    return !!a && !!b && (a === b || (a.length > 35 && b.indexOf(a.slice(0, 35)) === 0) || (b.length > 35 && a.indexOf(b.slice(0, 35)) === 0));
+  }
+
+  async function prepareSelectedJobForMap(details) {
+    if (!details) return null;
+    let job = details.jk ? jobLocations.find(function (item) { return item.jk === details.jk; }) : null;
+    if (!job) job = jobLocations.find(function (item) { return selectedJobMatches(item, details); });
+    if (!job) {
+      const id = "irf-selected-" + (details.jk || Date.now().toString(36));
+      job = {
+        id: id, index: -1, title: details.title, company: details.company || "",
+        location: details.location || "No location shown", lat: 0, lng: 0,
+        plotLat: 0, plotLng: 0, straightKm: 0, inside: false, visible: true,
+        reason: "", source: "Indeed job detail", outsideCanada: false,
+        noPlace: true, jk: details.jk || null, url: details.url || null,
+        card: null, page: currentPageNumber()
+      };
+      jobLocations.push(job);
+    }
+    // The live detail pane is authoritative for the job the user clicked.
+    job.title = details.title || job.title;
+    if (details.company) job.company = details.company;
+    if (details.location) job.location = details.location;
+    if (details.jk) job.jk = details.jk;
+    if (details.url) job.url = details.url;
+    const place = job.location || "";
+    let coords = place && !isGenericPlace(place) ? townCoordsFor(place) : null;
+    if (!coords && place) {
+      const postal = place.match(/\\b[ABCEGHJ-NPRSTVXY]\\d[ABCEGHJ-NPRSTV-Z] ?\\d[ABCEGHJ-NPRSTV-Z]\\d\\b/i);
+      if (postal) coords = await geocodeAddress(postal[0] + ", " + place);
+    }
+    if (!coords && place && !isGenericPlace(place)) {
+      const town = place.split(",")[0].trim();
+      if (town) coords = await geocodeTown(town);
+    }
+    if (coords) {
+      const center = effectiveCenter();
+      job.lat = coords.lat; job.lng = coords.lng;
+      job.plotLat = coords.lat; job.plotLng = coords.lng;
+      job.straightKm = haversineKm(center.lat, center.lng, coords.lat, coords.lng);
+      job.inside = job.straightKm <= settings.radiusKm;
+      job.noPlace = false; job.outsideCanada = !isInCanada(coords.lat, coords.lng);
+      job.source = "Indeed job detail";
+    } else {
+      job.noPlace = true;
+      job.outsideCanada = false;
+    }
+    return job;
+  }
+
   function getCurrentJobKey() {
     // Prefer the job actually shown in Indeed's detail pane. Do not fall back
     // to the first .job_seen_beacon card: that selector matches every result
@@ -1241,41 +1393,48 @@
   }
 
   async function showCurrentJobOnMap() {
-    if (!isJobListPage()) { setStatus("Show on map only works on an Indeed search list, not on a job detail page."); return { ok: false }; }
-    // Identify the open job FIRST. showMap re-collects the list and rebuilds
-    // jobLocations, so a job found after that can already carry a wrong city.
-    let jk = getCurrentJobKey();
+    if (!isJobListPage()) {
+      setStatus("Show on map is available from an Indeed search-results page with a job selected in the detail pane.");
+      return { ok: false, reason: "not a search-results page" };
+    }
+    // Read the live Indeed detail pane BEFORE opening the map. The result-card
+    // DOM is not a reliable source for the selected job's company or URL.
+    const details = readIndeedSelectedJobDetails();
+    if (!details || !details.title) {
+      setStatus("Could not read the selected Indeed job. Select a job so its details appear, then click Show on map.");
+      return { ok: false, reason: "selected job details not found" };
+    }
+
     const mapResult = await showMap(true);
-    if (!mapResult || !mapResult.ok) return mapResult || { ok: false, reason: 'map did not open' };
-    // Retry once after the map collect: the title fallback in
-    // getCurrentJobKey needs jobLocations, which showMap just filled.
-    if (!jk) jk = getCurrentJobKey();
-    if (!jk) {
-      setMapDetail("Could not tell which job is open. Click the job in the list first, then click Show on map again. The map is open with all loaded jobs, click any pin.");
-      setStatus("Could not tell which job is open. Click the job in the list first, then click Show on map again.");
-      return { ok: false, reason: "no jk" };
-    }
-    let job = jobLocations.find(function (j) { return j.jk === jk; });
+    if (!mapResult || !mapResult.ok) return mapResult || { ok: false, reason: "map did not open" };
+    // Opening the map re-collects result cards. Re-read the selected detail
+    // pane and use its title/company/location/URL as the source of truth.
+    const liveDetails = readIndeedSelectedJobDetails() || details;
+    const job = await prepareSelectedJobForMap(liveDetails);
     if (!job) {
-      setMapDetail("Finding that job on the map, please wait. Job key: " + jk);
-      await collectJobLocations(settings.loadMode === "auto");
-      job = jobLocations.find(function (j) { return j.jk === jk; });
-      plotJobMarkers();
-      updateMapCount();
+      setMapDetail("Could not match the selected Indeed job to a map location.");
+      setStatus("Could not prepare the selected job for the map.");
+      return { ok: false, reason: "selected job could not be prepared" };
     }
-    if (!job) {
-      setMapDetail("That job is not in the loaded list yet. Scroll the list to load more jobs, then click Show on map again. Job key: " + jk);
-      setStatus("That job is not in the loaded list yet. Scroll the list to load more jobs, then click Show on map again.");
-      return { ok: false, reason: "job not in list" };
+    if (job.noPlace || job.outsideCanada) {
+      showJobDetail(job);
+      renderOutsideList();
+      setMapDetail(job.title + (job.company ? " — " + job.company : "") + ": " + job.location + ". No map pin could be placed for this location.");
+      setStatus("The selected job was read, but its location could not be plotted: " + job.location);
+      return { ok: false, reason: "job location not plottable" };
     }
-    await fixJobPlaceFromDetail(job);
+
     plotJobMarkers();
     updateMapCount();
-    await focusJobOnMap(job);
-    setStatus("Showing on the map: " + job.title + ", " + job.location);
-    return { ok: true, title: job.title };
+    const focused = await focusJobOnMap(job);
+    if (!focused) {
+      setMapDetail("Could not open the selected job's map popup. " + job.title + (job.company ? " — " + job.company : ""));
+      setStatus("The selected job was found, but its marker popup did not open.");
+      return { ok: false, reason: "marker popup failed" };
+    }
+    setStatus("Showing on the map: " + job.title + (job.company ? " — " + job.company : "") + ", " + job.location);
+    return { ok: true, title: job.title, company: job.company };
   }
-
   function injectShowOnMapButton() {
     const old = document.getElementById("irf-show-on-map");
     if (old && old.isConnected) return;
