@@ -1100,28 +1100,48 @@
   }
 
   function getCurrentJobKey() {
+    // Prefer the job actually shown in Indeed's detail pane. Do not fall back
+    // to the first .job_seen_beacon card: that selector matches every result
+    // and can silently focus a different job from the one the user selected.
     try {
       const params = new URLSearchParams(window.location.search);
       const vjk = params.get("vjk");
       if (vjk) return vjk;
     } catch (e) {}
-    const sel = document.querySelector("[data-jk][aria-selected='true'], li[aria-selected='true'] [data-jk], .job_seen_beacon[data-jk], [data-jk].selected, [data-jk].active, li.selected [data-jk], li.active [data-jk]");
-    if (sel) return sel.getAttribute("data-jk");
-    const detail = document.querySelector("[data-testid='job-detail'], .jobsearch-JobComponent");
+
+    const detail = document.querySelector(
+      "[data-testid='job-detail'], .jobsearch-JobComponent, #jobsearch-ViewjobPane, [id*='jobDetail']"
+    );
     if (detail) {
-      const link = detail.querySelector("a[href*='jk=']");
-      if (link) {
-        const m = (link.getAttribute("href") || "").match(/[?&]jk=([A-Za-z0-9]+)/);
-        if (m) return m[1];
+      const keyed = detail.querySelector("[data-jk], [data-jobkey], a[href*='jk=']");
+      if (keyed) {
+        const direct = keyed.getAttribute("data-jk") || keyed.getAttribute("data-jobkey");
+        if (direct) return direct;
+        const match = (keyed.getAttribute("href") || "").match(/[?&]jk=([A-Za-z0-9]+)/);
+        if (match) return match[1];
       }
-      const titleEl = detail.querySelector("h2, [data-testid='job-title']");
-      if (titleEl) {
-        const title = (titleEl.textContent || "").trim().slice(0, 60);
-        const card = jobLocations.find(function (j) { return j.title && title && j.title.indexOf(title.slice(0, 30)) !== -1; });
-        if (card && card.jk) return card.jk;
+
+      const titleEl = detail.querySelector("h1, h2, [data-testid='job-title']");
+      const detailTitle = titleEl ? norm(textOf(titleEl)).slice(0, 100) : "";
+      if (detailTitle) {
+        const match = jobLocations.find(function (job) {
+          const jobTitle = norm(job.title || "");
+          return job.jk && jobTitle &&
+            (jobTitle === detailTitle ||
+             (detailTitle.length >= 30 && jobTitle.indexOf(detailTitle.slice(0, 30)) === 0) ||
+             (jobTitle.length >= 30 && detailTitle.indexOf(jobTitle.slice(0, 30)) === 0));
+        });
+        if (match) return match.jk;
       }
     }
-    return null;
+
+    // Only accept an explicitly selected/active result card.
+    const selected = document.querySelector(
+      "[data-jk][aria-selected='true'], [data-jk][aria-current='true'], " +
+      "li[aria-selected='true'] [data-jk], [data-jk].selected, [data-jk].active, " +
+      "li.selected [data-jk], li.active [data-jk]"
+    );
+    return selected ? selected.getAttribute("data-jk") : null;
   }
 
   function getDetailLocation(job) {
@@ -1187,6 +1207,9 @@
     if (!mapObj) return false;
     try { mapObj.invalidateSize({ pan: false }); } catch (e) {}
     try { mapObj.setView([job.plotLat, job.plotLng], 12, { animate: false }); } catch (e) {}
+    // Allow Leaflet's view update and the overlay layout to settle.
+    await new Promise(function (resolve) { setTimeout(resolve, 100); });
+    if (!mapObj) return false;
 
     showJobDetail(job);
     let marker = mapMarkers.find(function (m) { return m.jobId === job.id; });
@@ -1222,7 +1245,8 @@
     // Identify the open job FIRST. showMap re-collects the list and rebuilds
     // jobLocations, so a job found after that can already carry a wrong city.
     let jk = getCurrentJobKey();
-    await showMap(true);
+    const mapResult = await showMap(true);
+    if (!mapResult || !mapResult.ok) return mapResult || { ok: false, reason: 'map did not open' };
     // Retry once after the map collect: the title fallback in
     // getCurrentJobKey needs jobLocations, which showMap just filled.
     if (!jk) jk = getCurrentJobKey();
