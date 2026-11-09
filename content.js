@@ -1179,10 +1179,36 @@
       setStatus("That job has no place on the map, it is in the small list below the map: " + job.title);
       return true;
     }
-    try { mapObj.setView([job.plotLat, job.plotLng], 12); } catch (e) {}
+
+    // This map is opened from Indeed's job-detail pane. Wait for the overlay
+    // to become visible, then let Leaflet recalculate its dimensions before
+    // focusing the selected job and opening its normal marker popup.
+    await new Promise(function (resolve) { setTimeout(resolve, 350); });
+    if (!mapObj) return false;
+    try { mapObj.invalidateSize({ pan: false }); } catch (e) {}
+    try { mapObj.setView([job.plotLat, job.plotLng], 12, { animate: false }); } catch (e) {}
+
     showJobDetail(job);
-    const marker = mapMarkers.find(function (m) { return m.jobId === job.id; });
-    if (marker) { try { marker.openPopup(); } catch (e) {} }
+    let marker = mapMarkers.find(function (m) { return m.jobId === job.id; });
+    if (!marker && job.jk) {
+      marker = mapMarkers.find(function (m) {
+        const candidate = jobLocations.find(function (j) { return j.id === m.jobId; });
+        return candidate && candidate.jk === job.jk;
+      });
+    }
+    if (!marker) {
+      plotJobMarkers();
+      marker = mapMarkers.find(function (m) { return m.jobId === job.id; });
+    }
+    if (marker) {
+      try {
+        marker.setZIndexOffset(1000);
+        marker.openPopup();
+      } catch (e) {}
+    } else {
+      setStatus("The job was located, but its map pin could not be created: " + job.title);
+      return false;
+    }
     return true;
   }
 
@@ -1288,7 +1314,7 @@
         '<button id="irf-map-refresh" class="irf-secondary">Refresh map</button>' +
         '<button id="irf-map-reset-all" class="irf-secondary">Reset all results</button>' +
         '<button id="irf-map-showall" class="irf-secondary">Show all</button></div>' +
-        '<div id="irf-map"></div><div id="irf-map-detail">Click a pin to see that job here, in this small bar, and in a small popup on the pin. No popup opens by itself.</div><div id="irf-map-outside"></div>' +
+        '<div id="irf-map"></div><div id="irf-map-detail">Click a pin, or use Show on map in the Indeed job details, to open that job popup here.</div><div id="irf-map-outside"></div>' +
         '<div class="irf-map-foot">Map data: OpenStreetMap contributors, ODbL. Map stays inside Canada. Green pin is inside your radius, red pin is outside. Click a pin for a small popup with the job and an Open button. It opens in a new tab by default, change it in the settings in the popup, in the Indeed panel, or on the map. The map does not zoom out by itself when new pins are found, use Fit all pins if you want to see all of them.</div>';
       document.body.appendChild(overlay);
       document.getElementById("irf-map-close").addEventListener("click", function () { overlay.style.display = "none"; mapVisible = false; });
