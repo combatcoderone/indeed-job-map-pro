@@ -1101,7 +1101,6 @@
 
 function getIndeedJobDetailPane() {
     const selectors = [
-      "[data-testid='jobsearch-JobInfoHeader-title']",
       "[data-testid='job-detail']",
       "#jobsearch-ViewjobPane",
       ".jobsearch-JobComponent",
