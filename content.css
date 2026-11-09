@@ -1,0 +1,114 @@
+#irf-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 999999;
+  width: 284px;
+  background: #ffffff;
+  border: 1px solid #d4d2d0;
+  border-radius: 14px;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.24);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  color: #2d2d2d;
+  padding: 0;
+  overflow: hidden;
+}
+#irf-panel.irf-collapsed .irf-body { display: none; }
+#irf-panel .irf-head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: #2557a7;
+  color: #fff;
+  padding: 10px 12px;
+}
+#irf-panel .irf-head img { width: 32px; height: 32px; border-radius: 8px; flex: none; }
+#irf-panel h3 { margin: 0; font-size: 14px; line-height: 1.25; }
+#irf-panel .irf-head small { display: block; font-size: 11px; opacity: 0.9; font-weight: 400; }
+#irf-panel .irf-close {
+  border: none;
+  background: rgba(255,255,255,0.22);
+  color: #fff;
+  border-radius: 999px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  flex: none;
+  margin-left: auto;
+}
+#irf-panel .irf-body { padding: 12px; }
+#irf-panel .irf-status {
+  background: #eef3fb;
+  border: 1px solid #d6e2f2;
+  border-radius: 8px;
+  padding: 8px;
+  margin: 0 0 10px 0;
+  line-height: 1.45;
+}
+#irf-panel .irf-row { display: flex; gap: 6px; margin-bottom: 6px; }
+#irf-panel .irf-row:last-child { margin-bottom: 0; }
+#irf-panel button.irf-btn {
+  flex: 1;
+  border: 1px solid #2557a7;
+  background: #2557a7;
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+#irf-panel button.irf-btn:hover { background: #1d4a90; }
+#irf-panel button.irf-btn.irf-secondary { background: #fff; color: #2557a7; }
+#irf-panel button.irf-btn.irf-secondary:hover { background: #eef3fb; }
+#irf-panel button.irf-btn:disabled { opacity: 0.55; cursor: default; }
+#irf-panel .irf-note { margin: 8px 0 0 0; color: #595959; font-size: 11px; line-height: 1.4; }
+
+#irf-map-overlay {
+  position: fixed; left: 16px; top: 16px; right: 16px; bottom: 16px;
+  z-index: 1000000; background: #fff; border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.30); display: flex; flex-direction: column;
+  font-family: Arial, Helvetica, sans-serif; overflow: hidden;
+}
+#irf-map-overlay .irf-map-head {
+  display: flex; gap: 10px; align-items: center; background: #2557a7; color: #fff; padding: 10px 12px;
+}
+#irf-map-overlay .irf-map-head img { width: 32px; height: 32px; border-radius: 8px; }
+#irf-map-overlay .irf-map-head h3 { margin: 0; font-size: 15px; }
+#irf-map-overlay .irf-map-head small { display: block; font-size: 11px; opacity: 0.9; font-weight: 400; }
+#irf-map-overlay .irf-map-close { margin-left: auto; border: none; background: rgba(255,255,255,0.22); color: #fff; border-radius: 999px; width: 28px; height: 28px; cursor: pointer; font-size: 15px; }
+#irf-map-overlay .irf-map-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; background: #f6f8fb; border-bottom: 1px solid #e3e6ea; font-size: 13px; }
+#irf-map-overlay .irf-map-controls label { font-weight: 700; }
+#irf-map-overlay .irf-map-controls input[type="range"] { width: 160px; }
+#irf-map-overlay .irf-map-controls button { border: 1px solid #2557a7; background: #2557a7; color: #fff; border-radius: 999px; padding: 8px 12px; cursor: pointer; font-weight: 700; font-size: 12px; }
+#irf-map-overlay .irf-map-controls button.irf-secondary { background: #fff; color: #2557a7; }
+#irf-map { flex: 1; min-height: 300px; width: 100%; }
+#irf-map-overlay .irf-map-foot { padding: 8px 12px; font-size: 12px; color: #595959; background: #fff; border-top: 1px solid #e3e6ea; line-height: 1.45; }
+.irf-pin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.4); }
+.irf-pin-green { background: #1a7f37; }
+.irf-pin-red { background: #cf222e; }
+.irf-pin-blue { background: #2557a7; width: 22px; height: 22px; }
+
+#irf-map-detail { padding: 8px 12px; background: #eef3fb; border-top: 1px solid #d6e2f2; font-size: 12px; line-height: 1.45; min-height: 34px; }
+#irf-map-detail b { color: #2557a7; }
+#irf-map-detail button { margin-left: 8px; border: 1px solid #2557a7; background: #2557a7; color: #fff; border-radius: 999px; padding: 5px 10px; cursor: pointer; font-weight: 700; font-size: 11px; }
+#irf-map-outside { padding: 8px 12px; background: #fff; border-top: 1px solid #e3e6ea; font-size: 12px; line-height: 1.5; max-height: 110px; overflow-y: auto; }
+#irf-map-outside summary { cursor: pointer; font-weight: 700; color: #2557a7; }
+#irf-map-outside button { margin: 2px 4px 2px 0; border: 1px solid #d4d2d0; background: #fff; color: #2557a7; border-radius: 999px; padding: 3px 8px; cursor: pointer; font-size: 11px; }
+
+.leaflet-popup-content-wrapper { border-radius: 14px; box-shadow: 0 10px 28px rgba(0,0,0,0.25); }
+.irf-popup { font-family: Arial, Helvetica, sans-serif; font-size: 13px; line-height: 1.45; min-width: 220px; }
+.irf-popup b { color: #2557a7; font-size: 14px; }
+.irf-popup .irf-popup-dist { background: #eef3fb; border-radius: 8px; padding: 6px 8px; margin: 6px 0; }
+.irf-popup button { width: 100%; border: none; background: #2557a7; color: #fff; border-radius: 999px; padding: 9px 10px; cursor: pointer; font-weight: 700; font-size: 13px; margin-top: 6px; }
+.irf-popup button:hover { background: #1d4a90; }
+#irf-panel select.irf-select { width: 100%; margin-top: 4px; padding: 6px; border: 1px solid #d4d2d0; border-radius: 8px; }
+#irf-panel .irf-setting { margin: 8px 0 0 0; font-size: 12px; line-height: 1.4; }
+
+#irf-show-on-map { background: #2557a7 !important; color: #fff !important; border: none !important; border-radius: 8px !important; padding: 8px 12px !important; font-weight: 700 !important; font-size: 13px !important; cursor: pointer !important; margin-left: 8px !important; white-space: nowrap !important; }
+#irf-show-on-map:hover { background: #1d4a90 !important; }
+
+#irf-show-on-map { display: inline-flex !important; width: auto !important; flex: 0 0 auto !important; align-self: center !important; }

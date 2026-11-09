@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Indeed Radius Filter</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <img src="icons/icon48.png" alt="Indeed Radius Filter logo">
+    <div>
+      <h1>Indeed Radius Filter</h1>
+      <p>v1.12, Show on map button in job detail</p>
+    </div>
+  </div>
+  <div class="main">
+  <p class="sub">Load all jobs on this page, then keep only the ones near you, anywhere in Canada.</p>
+  <div class="card">
+  <h2>Place</h2>
+
+  <label>Center
+    <select id="center">
+      <optgroup label="Quebec">
+        <option value="saint-laurent">Saint-Laurent, Montreal</option>
+        <option value="pointe-claire">Pointe-Claire</option>
+        <option value="montreal-downtown">Montreal downtown</option>
+        <option value="kirkland">Kirkland</option>
+        <option value="dorval">Dorval</option>
+        <option value="laval">Laval</option>
+        <option value="longueuil">Longueuil</option>
+        <option value="quebec-city">Quebec City</option>
+        <option value="gatineau">Gatineau</option>
+        <option value="sherbrooke">Sherbrooke</option>
+        <option value="trois-rivieres">Trois-Rivieres</option>
+      </optgroup>
+      <optgroup label="Ontario">
+        <option value="toronto">Toronto</option>
+        <option value="ottawa">Ottawa</option>
+        <option value="mississauga">Mississauga</option>
+        <option value="hamilton">Hamilton</option>
+        <option value="london">London</option>
+        <option value="kitchener">Kitchener</option>
+        <option value="windsor">Windsor</option>
+        <option value="kingston">Kingston</option>
+      </optgroup>
+      <optgroup label="British Columbia">
+        <option value="vancouver">Vancouver</option>
+        <option value="victoria">Victoria</option>
+        <option value="surrey">Surrey</option>
+        <option value="kelowna">Kelowna</option>
+      </optgroup>
+      <optgroup label="Alberta">
+        <option value="calgary">Calgary</option>
+        <option value="edmonton">Edmonton</option>
+        <option value="red-deer">Red Deer</option>
+      </optgroup>
+      <optgroup label="Prairies">
+        <option value="winnipeg">Winnipeg</option>
+        <option value="saskatoon">Saskatoon</option>
+        <option value="regina">Regina</option>
+      </optgroup>
+      <optgroup label="Atlantic">
+        <option value="halifax">Halifax</option>
+        <option value="moncton">Moncton</option>
+        <option value="st-johns">St. John's</option>
+        <option value="charlottetown">Charlottetown</option>
+        <option value="fredericton">Fredericton</option>
+      </optgroup>
+      <optgroup label="North">
+        <option value="yellowknife">Yellowknife</option>
+        <option value="whitehorse">Whitehorse</option>
+      </optgroup>
+    </select>
+  </label>
+
+  <label>Radius: <span id="radiusLabel">25 km</span>
+    <input type="range" id="radius" min="5" max="100" step="5" value="25">
+  </label>
+  </div>
+  <div class="card">
+  <h2>Distance method, better than town center</h2>
+  <label>Filter by
+    <select id="distanceMode">
+      <option value="driving_km">Driving distance in km, from OSRM</option>
+      <option value="driving_time">Driving time in minutes, from OSRM</option>
+      <option value="straight_km">Straight line in km, old method</option>
+    </select>
+  </label>
+  <label>Max driving time: <span id="driveLabel">30 min</span>
+    <input type="range" id="maxDriveMinutes" min="10" max="90" step="5" value="30">
+  </label>
+  <p class="note">Best method: exact address from the job details, including postal code, then driving distance and time from OSRM, the free OpenStreetMap router. Indeed commute time on the card, for example 45-minute commute, is used first when it is there. Town center straight line is only a fallback.</p>
+  </div>
+  <div class="card">
+  <h2>Speed and rest</h2>
+  <label>Speed
+    <select id="speed">
+      <option value="slow">Slow, safest, 1.6 to 2.5 sec per step</option>
+      <option value="normal">Normal, 0.9 to 1.4 sec per step</option>
+      <option value="fast">Fast, higher risk, 0.5 to 0.8 sec per step</option>
+    </select>
+  </label>
+
+  <label class="check"><input type="checkbox" id="enableRest" checked> Rest during long loads</label>
+  <label>Work time before rest: <span id="workLabel">2 min</span>
+    <input type="range" id="workMinutes" min="1" max="5" step="1" value="2">
+  </label>
+  <label>Rest time: <span id="restLabel">1 min</span>
+    <input type="range" id="restMinutes" min="0" max="3" step="0.5" value="1">
+  </label>
+  <p class="note">Default is 1 minute rest every 2 minutes of work. Rest only starts if loading takes longer than the work time. Short lists finish before any rest.</p>
+  </div>
+  <div class="card">
+  <h2>Options</h2>
+  <label class="check"><input type="checkbox" id="keepRemote" checked> Keep remote jobs</label>
+  <label class="check"><input type="checkbox" id="autoStart" checked> Auto load all when I click the first job</label>
+  <label>Open a job from the map
+    <select id="openInNewPage">
+      <option value="new">New page, default</option>
+      <option value="same">Same page</option>
+    </select>
+  </label>
+  <label>Load mode
+    <select id="loadMode">
+      <option value="page">Page by page, default</option>
+      <option value="auto">Automated, all pages, up to 10 pages</option>
+    </select>
+  </label>
+  <p class="note">Page by page: Load all loads only the page you are on. When you go to the Next or Previous page, the map updates automatically to that page. Automated: Load all loads this page, then goes to the next page by itself, loads it, and so on, up to 10 pages, and the map collects all of them. Click Stop to stop automated mode.</p>
+  <label class="check"><input type="checkbox" id="townsOnly"> Only Saint-Laurent and West Island towns when the exact place is unknown</label>
+  </div>
+
+  <div class="row">
+    <button id="loadFilter" class="primary">Load all and filter</button>
+  </div>
+  <div class="row">
+    <button id="openMap" class="primary">Open map view</button>
+  </div>
+  <div class="row">
+    <button id="showCurrentJob" class="primary">Show open job on map</button>
+  </div>
+  <p class="note">Map view: OpenStreetMap with your center, a radius circle, and a pin for each loaded job. Green is inside your radius, red is outside. Drag the blue center pin to move your center, change the radius on the map, then click Filter by circle or Filter by map view. Click a pin to see the job and open it.</p>
+  <div class="row">
+    <button id="pauseLoad">Pause</button>
+    <button id="resumeLoad">Resume</button>
+  </div>
+  <div class="row">
+    <button id="prevPage">Previous page</button>
+    <button id="nextPage">Next page</button>
+  </div>
+  <div class="row">
+    <button id="stopLoad">Stop</button>
+    <button id="showAll">Show all jobs</button>
+  </div>
+  <div class="row">
+    <button id="resetAll">Reset all results</button>
+  </div>
+  <div class="row">
+    <button id="goTop">Top</button>
+    <button id="goBottom">Bottom</button>
+  </div>
+
+  <p id="status">Open an Indeed search page first, then use the buttons above.</p>
+  <p class="note">Canada coverage: the extension has town coordinates for more than 100 Canadian cities, from Vancouver to St. John's. If a city is not in the list, it tries a free lookup for that city name in Canada, and it is cached. Jobs that only show a province or a vague place are hidden only if the West Island box above is checked.</p>
+  <p class="note">Safety: Slow is the default. Fast is faster but easier for Indeed to flag. If you see a CAPTCHA or a verify you are human page, the extension stops by itself. Do not keep clicking Load all after that.</p>
+  </div>
+  <p class="footer">Indeed Radius Filter v1.16</p>
+  <script src="popup.js"></script>
+</body>
+</html>

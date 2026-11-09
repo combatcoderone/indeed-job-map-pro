@@ -1,0 +1,22 @@
+body { width: 320px; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #2d2d2d; background: #f6f8fb; }
+.header { display: flex; gap: 12px; align-items: center; background: #2557a7; color: #fff; padding: 14px; }
+.header img { width: 48px; height: 48px; border-radius: 12px; flex: none; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+.header h1 { font-size: 17px; margin: 0; line-height: 1.2; }
+.header p { margin: 3px 0 0 0; font-size: 11px; opacity: 0.9; line-height: 1.35; }
+.main { padding: 14px; }
+.sub { margin: 0 0 12px 0; color: #595959; line-height: 1.4; }
+.card { background: #fff; border: 1px solid #e3e6ea; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+.card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #2557a7; margin: 0 0 10px 0; }
+label { display: block; margin-bottom: 10px; font-weight: 700; }
+label:last-child { margin-bottom: 0; }
+select, input[type="range"] { width: 100%; margin-top: 6px; }
+select { padding: 7px; border: 1px solid #d4d2d0; border-radius: 8px; background: #fff; }
+.check { font-weight: 400; }
+.row { display: flex; gap: 8px; margin-bottom: 8px; }
+button { flex: 1; padding: 10px 8px; border-radius: 999px; border: 1px solid #2557a7; background: #fff; color: #2557a7; font-weight: 700; cursor: pointer; }
+button:hover { background: #eef3fb; }
+button.primary { background: #2557a7; color: #fff; }
+button.primary:hover { background: #1d4a90; }
+#status { background: #eef3fb; border: 1px solid #d6e2f2; border-radius: 8px; padding: 9px; line-height: 1.45; }
+.note { color: #595959; font-size: 11px; line-height: 1.45; }
+.footer { text-align: center; color: #8a8a8a; font-size: 11px; padding: 0 14px 12px 14px; }
