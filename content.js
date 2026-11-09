@@ -1192,6 +1192,7 @@ function getIndeedJobDetailPane() {
         }) || "";
       }
     }
+    if (!url && jk) url = new URL('/viewjob?jk=' + encodeURIComponent(jk), window.location.origin).href;
     return { pane: pane, title: title, company: company, location: location, jk: jk, url: url };
   }
 
