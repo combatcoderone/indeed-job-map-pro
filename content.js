@@ -1141,7 +1141,7 @@ function getIndeedJobDetailPane() {
     function firstText(selectors) {
       for (let i = 0; i < selectors.length; i++) {
         const el = pane.querySelector(selectors[i]);
-        const value = el ? textOf(el).replace(/\\s+/g, " ").trim() : "";
+        const value = el ? textOf(el).replace(/\s+/g, " ").trim() : "";
         if (value && value.length < 180) return value;
       }
       return "";
@@ -1174,11 +1174,11 @@ function getIndeedJobDetailPane() {
       const key = href.match(/[?&]jk=([A-Za-z0-9]+)/);
       const dataKey = links[i].getAttribute("data-jk");
       if (!jk && (key || dataKey)) jk = dataKey || key[1];
-      if (!url && (key || /\\/viewjob(?:[/?]|$)/.test(href))) {
+      if (!url && (key || /\/viewjob(?:[/?]|$)/.test(href))) {
         url = href.indexOf("http") === 0 ? href : new URL(href, window.location.origin).href;
       }
     }
-    const lines = (pane.innerText || "").split("\\n").map(function (line) { return line.trim(); }).filter(Boolean).slice(0, 14);
+    const lines = (pane.innerText || "").split("\n").map(function (line) { return line.trim(); }).filter(Boolean).slice(0, 14);
     const titleIndex = lines.findIndex(function (line) { return norm(line) === norm(title); });
     if (titleIndex >= 0) {
       const afterTitle = lines.slice(titleIndex + 1).filter(function (line) {
@@ -1187,8 +1187,8 @@ function getIndeedJobDetailPane() {
       if (!company && afterTitle.length) company = afterTitle[0].slice(0, 120);
       if (!location) {
         location = afterTitle.find(function (line) {
-          return /,\\s*(QC|ON|BC|AB|MB|SK|NS|NB|NL|PE|YT|NT|NU)\\b/i.test(line) ||
-            /^(remote|hybrid|work from home)\\b/i.test(line);
+          return /,\s*(QC|ON|BC|AB|MB|SK|NS|NB|NL|PE|YT|NT|NU)\b/i.test(line) ||
+            /^(remote|hybrid|work from home)\b/i.test(line);
         }) || "";
       }
     }
@@ -1228,7 +1228,7 @@ function getIndeedJobDetailPane() {
     const place = job.location || "";
     let coords = place && !isGenericPlace(place) ? townCoordsFor(place) : null;
     if (!coords && place) {
-      const postal = place.match(/\\b[ABCEGHJ-NPRSTVXY]\\d[ABCEGHJ-NPRSTV-Z] ?\\d[ABCEGHJ-NPRSTV-Z]\\d\\b/i);
+      const postal = place.match(/\b[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z] ?\d[ABCEGHJ-NPRSTV-Z]\d\b/i);
       if (postal) coords = await geocodeAddress(postal[0] + ", " + place);
     }
     if (!coords && place && !isGenericPlace(place)) {
