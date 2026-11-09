@@ -1393,34 +1393,35 @@ function getIndeedJobDetailPane() {
   }
 
   async function showCurrentJobOnMap() {
+    // Open the map FIRST. Reading Indeed's selected detail pane must never
+    // prevent the user's Show on map action from opening the map itself.
+    const mapResult = await showMap(true);
+    if (!mapResult || !mapResult.ok) return mapResult || { ok: false, reason: "map did not open" };
+
     if (!isJobListPage()) {
-      setStatus("Show on map is available from an Indeed search-results page with a job selected in the detail pane.");
+      setStatus("The map is open, but Show on map needs an Indeed search-results page with a job selected in the detail pane.");
       return { ok: false, reason: "not a search-results page" };
     }
-    // Read the live Indeed detail pane BEFORE opening the map. The result-card
-    // DOM is not a reliable source for the selected job's company or URL.
     const details = readIndeedSelectedJobDetails();
     if (!details || !details.title) {
-      setStatus("Could not read the selected Indeed job. Select a job so its details appear, then click Show on map.");
+      setStatus("The map is open. Select a job in Indeed's detail pane, then click Show on map again.");
       return { ok: false, reason: "selected job details not found" };
     }
 
-    const mapResult = await showMap(true);
-    if (!mapResult || !mapResult.ok) return mapResult || { ok: false, reason: "map did not open" };
-    // Opening the map re-collects result cards. Re-read the selected detail
-    // pane and use its title/company/location/URL as the source of truth.
+    // Opening the map re-collects result cards. Use the live detail pane as
+    // the source of truth for the selected job's title, company, location and URL.
     const liveDetails = readIndeedSelectedJobDetails() || details;
     const job = await prepareSelectedJobForMap(liveDetails);
     if (!job) {
       setMapDetail("Could not match the selected Indeed job to a map location.");
-      setStatus("Could not prepare the selected job for the map.");
+      setStatus("The map is open, but the selected job could not be matched to a map location.");
       return { ok: false, reason: "selected job could not be prepared" };
     }
     if (job.noPlace || job.outsideCanada) {
       showJobDetail(job);
       renderOutsideList();
       setMapDetail(job.title + (job.company ? " — " + job.company : "") + ": " + job.location + ". No map pin could be placed for this location.");
-      setStatus("The selected job was read, but its location could not be plotted: " + job.location);
+      setStatus("The map is open, but the selected job location could not be plotted: " + job.location);
       return { ok: false, reason: "job location not plottable" };
     }
 
@@ -1429,12 +1430,13 @@ function getIndeedJobDetailPane() {
     const focused = await focusJobOnMap(job);
     if (!focused) {
       setMapDetail("Could not open the selected job's map popup. " + job.title + (job.company ? " — " + job.company : ""));
-      setStatus("The selected job was found, but its marker popup did not open.");
+      setStatus("The map is open, but the selected job's marker popup did not open.");
       return { ok: false, reason: "marker popup failed" };
     }
     setStatus("Showing on the map: " + job.title + (job.company ? " — " + job.company : "") + ", " + job.location);
     return { ok: true, title: job.title, company: job.company };
   }
+
   function injectShowOnMapButton() {
     const old = document.getElementById("irf-show-on-map");
     if (old && old.isConnected) return;
