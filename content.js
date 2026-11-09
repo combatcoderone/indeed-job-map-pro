@@ -1152,7 +1152,7 @@ function getIndeedJobDetailPane() {
       "h1", "h2"
     ]);
     if (!title) return null;
-    const company = firstText([
+    let company = firstText([
       "[data-testid='inlineHeader-companyName']",
       "[data-testid='company-name']",
       "[data-testid='jobsearch-JobInfoHeader-companyName']",
