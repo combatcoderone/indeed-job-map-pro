@@ -1171,7 +1171,7 @@
     return job;
   }
 
-  async async function focusJobOnMap(job) {
+  async function focusJobOnMap(job) {
     if (!job || !mapObj) return false;
     await fixJobPlaceFromDetail(job);
     if (job.outsideCanada || job.noPlace) {
@@ -1217,7 +1217,7 @@
     if (el) el.textContent = text;
   }
 
-  async async function showCurrentJobOnMap() {
+  async function showCurrentJobOnMap() {
     if (!isJobListPage()) { setStatus("Show on map only works on an Indeed search list, not on a job detail page."); return { ok: false }; }
     // Identify the open job FIRST. showMap re-collects the list and rebuilds
     // jobLocations, so a job found after that can already carry a wrong city.
