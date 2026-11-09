@@ -1,4 +1,4 @@
-# Indeed Radius Filter v1.17
+# Indeed Job Map Pro v1.17.0
 
 Logo: blue rounded square, white map pin in the middle, white radius ring around it, with yellow dots on the ring.
 
@@ -49,17 +49,17 @@ How to use it:
 - You need to stay active in the Indeed tab while Load all runs. Outside range jobs are hidden with display none, not deleted. Show all brings them back.
 
 ## Install in Chrome
-1. Remove the old version first, in chrome://extensions, click Remove for Indeed Radius Filter.
-2. Unzip indeed-radius-filter-v1.9.zip and keep the folder indeed-radius-filter.
+1. Remove the old version first, in chrome://extensions, click Remove for Indeed Job Map Pro.
+2. Unzip indeed-job-map-pro-v1.17.0.zip and keep the folder indeed-job-map-pro.
 3. Open Chrome and go to chrome://extensions
 4. Turn on Developer mode, top right.
 5. Click Load unpacked.
-6. Choose the folder indeed-radius-filter (the folder with manifest.json in it, not the zip file itself).
+6. Choose the folder indeed-job-map-pro (the folder with manifest.json in it, not the zip file itself).
 7. Open ca.indeed.com, run a job search, choose Page by page or Automated, click Load all, then click Show map.
 8. Test: click Next page, check the map updates to the new page, without you clicking Refresh map or Show map again.
 
 ## Files
-- manifest.json: version 1.9.0
+- manifest.json: name Indeed Job Map Pro, version 1.17.0
 - leaflet/leaflet.js and leaflet/leaflet.css: Leaflet 1.9.4, bundled locally
 - content.js, content.css, popup.html, popup.js, popup.css
 - icons/icon16.png, icon32.png, icon48.png, icon128.png, icon256.png, icon512.png: the logo

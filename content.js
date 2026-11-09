@@ -1,4 +1,4 @@
-// Indeed Radius Filter, version 1.17.0
+// Indeed Job Map Pro, version 1.17.0
 // What it does:
 // 1. Auto scrolls the left job list to the end, in small steps, so Indeed loads every job.
 // 2. Keeps only jobs within the chosen radius from the chosen center, anywhere in Canada.
@@ -1410,7 +1410,7 @@
     const logoUrl = (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL) ? chrome.runtime.getURL("icons/icon32.png") : "";
     panel.innerHTML =
       '<div class="irf-head"><img src="' + logoUrl + '" alt="Logo">' +
-      '<h3>Indeed Radius Filter<small>v1.17, Show on map city fix</small></h3>' +
+      '<h3>Indeed Job Map Pro<small>v1.17</small></h3>' +
       '<button class="irf-close" id="irf-toggle" title="Hide panel">-</button></div>' +
       '<div class="irf-body">' +
       '<p class="irf-status" id="irf-status">Ready.</p>' +

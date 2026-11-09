@@ -1,7 +1,7 @@
 {
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Indeed Radius Filter"
+    "default_title": "Indeed Job Map Pro"
   },
   "content_scripts": [
     {
@@ -37,7 +37,7 @@
     "48": "icons/icon48.png"
   },
   "manifest_version": 3,
-  "name": "Indeed Radius Filter",
+  "name": "Indeed Job Map Pro",
   "permissions": [
     "storage"
   ],
